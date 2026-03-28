@@ -66,7 +66,7 @@ You can install Postman via this website: https://www.postman.com/downloads/
     -   [x] Commit: `Create Notification database and Notification repository struct skeleton.`
     -   [x] Commit: `Implement add function in Notification repository.`
     -   [x] Commit: `Implement list_all_as_string function in Notification repository.`
-    -   [ ] Write answers of your learning module's "Reflection Subscriber-1" questions in this README.
+    -   [x] Write answers of your learning module's "Reflection Subscriber-1" questions in this README.
 -   **STAGE 2: Implement services and controllers**
     -   [ ] Commit: `Create Notification service struct skeleton.`
     -   [ ] Commit: `Implement subscribe function in Notification service.`
@@ -85,5 +85,39 @@ This is the place for you to write reflections:
 ### Mandatory (Subscriber) Reflections
 
 #### Reflection Subscriber-1
+##### **1. In this tutorial, we used `RwLock<>` to synchronise the use of `Vec` of `Notifications`. Explain why it is necessary for this case, and explain why we do not use `Mutex<>` instead?**
 
+**I explained why `RwLock<Vec<Notification>>` used in this tutorial. Here is my reasons:**
+
+- Concurrent read-heavy access
+- Notification collection is shared by REST handlers (list, receive, etc.).
+- Many operations (e.g., listing notifications) are reads and can safely run in parallel.
+`RwLock` allows:
+- multiple simultaneous readers (read()), and
+- one writer (write()), blocking readers while writing.
+
+**Even so, why some writes still exist?**
+
+- Adding/removing subscriptions or messages needs exclusive access.
+- `RwLock` handles this with writer lock semantics, while allowing reads to be unhindered when no writer is active.
+
+**Why not just `Mutex<Vec<Notification>>`?**
+
+- Necause `Mutex` is simpler: always exclusive lock, even for reads.
+That means: every list call blocks other list calls, lower throughput and more latency under concurrent clients than `RwLock`.
+- For read-mostly workflows (notifications observed frequently, updates less frequent), `RwLock` is a better fit.
+
+##### **2. In this tutorial, we used lazy_static external library to define Vec and DashMap as a “static” variable. Compared to Java where we can mutate the content of a static variable via a static function, why did not Rust allow us to do so?**
+
+I explain why Rust uses `lazy_static` and stricter static mutability than Java. The short answer is Rust’s rules around static are intentionally strict to enforce safety at compile-time.
+
+**Rust static vs Java static**
+- Java:
+1. `static1 variables can be mutable by default.
+2. You can write static `List<Foo>` list and mutate it in any static method.
+3. Thread safety is not enforced by compiler; developers must synchronize manually.
+- Rust:
+1. `static` with mutable content is unsafe (`static mut`) because unsynchronized mutation can cause data races.
+2. Rust forbids easy global mutations to ensure memory safety and data-race freedom.
+ 
 #### Reflection Subscriber-2
