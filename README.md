@@ -113,7 +113,7 @@ I explain why Rust uses `lazy_static` and stricter static mutability than Java. 
 
 **Rust static vs Java static**
 - Java:
-1. `static1 variables can be mutable by default.
+1. `static` variables can be mutable by default.
 2. You can write static `List<Foo>` list and mutate it in any static method.
 3. Thread safety is not enforced by compiler; developers must synchronize manually.
 - Rust:
